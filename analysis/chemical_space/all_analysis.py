@@ -43,6 +43,43 @@ def get_all_data(smiles_sources_csv, docking_scores_csv, phys_prop_csv, fp_path)
     return df_subset, props_df_subset, props, titles, fps_subset
 
 
+def plot_docking_score_distr_comparisons(df, outfile):
+    '''
+    Plot distributions of docking scores (left) and docking score by library (right).
+    Probably binders for MraY (from ChEMBL and BindingDB) are expected to have lower docking scores
+    than those from the Enamine and Zinc libraries
+    '''
+    df_good = df[(df['chembl'] == True) | (df['bindingdb'] == True)]
+    df_other = df[(df['zinc'] == True) | (df['enamine_div'] == True) | (df['enamine_hll'] == True)]
+    all_scores = df['TotalEnergy'].values
+    good_molec_scores = df_good['TotalEnergy'].values
+    other_molec_scores = df_other['TotalEnergy'].values
+
+    bins = np.arange(-180, 0, 10)
+
+    fig, axs = plt.subplots(1, 2, figsize=[7.5, 2.5], dpi=300)
+    axs[0].hist(all_scores, bins=bins, label='All Molecules',
+                color='lightblue', edgecolor='k', lw=0.25)
+    axs[0].set_yscale('log')
+    axs[0].legend(fontsize=8)
+
+    axs[1].hist(good_molec_scores, bins=bins, label='Molecules from ChEMBL\nand BindingDB\n(probable binders)',
+                color='tab:green', edgecolor='k', lw=0.25, alpha=1, zorder=10)
+    axs[1].hist(other_molec_scores, bins=bins, label='Molecules from Enamine\nand Zinc Libraries',
+                color='tab:gray', edgecolor='k', lw=0.25, alpha=0.5)
+    axs[1].set_yscale('log')
+    axs[1].legend(fontsize=6)
+
+    for i in range(2):
+        axs[i].set_xlabel(r'Docking score / kcal mol$^{-1}$')
+        axs[i].set_ylabel('Number of Molecules')
+        axs[i].set_xlim(-180, 0)
+        axs[i].spines[['top', 'right']].set_visible(False)
+
+    plt.tight_layout()
+    
+    fig.savefig(outfile)
+
 
 def plot_distrs_of_properties(props_df, props, titles, outfile):
     '''
@@ -128,6 +165,9 @@ docking_scores_csv = '../../min_energy.csv'
 phys_prop_csv = '../../data/representations/physical_properties.csv'
 fp_path = '../../data/representations/morgan_fps_r4_1024bits.npz'
 df, props_df, props, titles, fps = get_all_data(smiles_sources_csv, docking_scores_csv, phys_prop_csv, fp_path)
+
+# Plot distributions of docking scores, separated by library
+plot_docking_score_distr_comparisons(df, outfile='docking_score_distrs_w_comparison.png')
 
 # Plot distributions of physical properties
 plot_distrs_of_properties(props_df, props, titles, outfile='distr_phys_prop_1d_hist.png')
