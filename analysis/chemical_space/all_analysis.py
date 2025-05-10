@@ -134,6 +134,37 @@ def plot_distrs_of_properties(props_df, props, titles, outfile):
     fig.savefig(outfile)
 
 
+def plot_distrs_of_properties_2d(df, props_df, props, titles, outfile):
+    '''
+    Plot distributions of physical properties of the molecules - all by all
+    '''
+    nprops = len(props)
+    fs = 6
+    fig, axs = plt.subplots(nprops, nprops, dpi=300, figsize=[12, 12])
+    for i in range(nprops):
+        for j in range(nprops):
+            ax = axs[i,j]
+            prop1 = props[i]
+            prop2 = props[j]
+            if i == j:
+                ax.hist(props_df[prop1].values, bins=25, color='tab:gray',
+                        edgecolor='k', lw=0.25)
+                ax.set_yscale('log')
+                ax.set_xlabel(titles[prop1], fontsize=fs)
+                ax.set_ylabel('Frequency', fontsize=fs)
+            else:
+                ax.scatter(props_df[prop1], props_df[prop2], s=2,
+                           c=df['TotalEnergy'], cmap='magma',
+                           vmin=-180, vmax=-75)
+                ax.set_xlabel(titles[prop1], fontsize=fs)
+                ax.set_ylabel(titles[prop2], fontsize=fs)
+
+            ax.tick_params(axis='both', labelsize=6)
+
+    plt.tight_layout()
+    fig.savefig(outfile)
+
+
 def center_standardize(data):
     data_clean = (data - np.mean(data, axis=0)) / np.nanstd(data, axis=0)
     return data_clean
@@ -208,7 +239,9 @@ plot_best_binders(best_enamine, best_zinc, best_chembl, best_bindingdb)
 
 # Plot distributions of physical properties
 plot_distrs_of_properties(props_df, props, titles, outfile='distr_phys_prop_1d_hist.png')
+plot_distrs_of_properties_2d(df, props_df, props, titles, outfile='distr_phys_prop_2d_hist.png')
 
+'''
 # Calculate PCA on physical property vectors and plot results
 data_props_all = np.array(props_df.values[:,2:]).astype(np.float32)
 data_props = center_standardize(data_props_all)
@@ -224,3 +257,4 @@ fps_pca_proj, fps_pca_exp_var = calc_pca(100, data_fps)
 plot_pca_all(fps_pca_proj, fps_pca_exp_var, df,
              title='PCA on Morgan Fingerprints',
              outfile='pca_morgan_fps.png')
+'''
