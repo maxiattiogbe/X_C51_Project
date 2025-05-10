@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from rdkit import Chem
@@ -204,7 +206,7 @@ def plot_pca_all(pca_proj, pca_exp_var, df, title, outfile):
                        label=libraries[lib], color=colors[lib],
                        alpha=0.9, s=2.5, lw=0)
     axs[0].set_xlabel(f'PC 1 ({100*pc1_var:.2f} % of Variance)')
-    axs[0].set_ylabel(f'PC 1 ({100*pc2_var:.2f} % of Variance)')
+    axs[0].set_ylabel(f'PC 2 ({100*pc2_var:.2f} % of Variance)')
     axs[0].set_title('Molecules in Dataset,\nColored by Library', fontsize=10)
     axs[0].legend(fontsize=8, labelspacing=0.25)
 
@@ -218,7 +220,7 @@ def plot_pca_all(pca_proj, pca_exp_var, df, title, outfile):
     axs[1].set_title('Molecules in Dataset,\nColored by Docking Score', fontsize=10)
     fig.colorbar(im, label=r'Docking Score / kcal mol$^{-1}$')
 
-    fig.suptitle(title, fontsize=12)
+    # fig.suptitle(title, fontsize=12)
     plt.tight_layout()
     fig.savefig(outfile)
 
@@ -241,7 +243,6 @@ plot_best_binders(best_enamine, best_zinc, best_chembl, best_bindingdb)
 plot_distrs_of_properties(props_df, props, titles, outfile='distr_phys_prop_1d_hist.png')
 plot_distrs_of_properties_2d(df, props_df, props, titles, outfile='distr_phys_prop_2d_hist.png')
 
-'''
 # Calculate PCA on physical property vectors and plot results
 data_props_all = np.array(props_df.values[:,2:]).astype(np.float32)
 data_props = center_standardize(data_props_all)
@@ -257,4 +258,3 @@ fps_pca_proj, fps_pca_exp_var = calc_pca(100, data_fps)
 plot_pca_all(fps_pca_proj, fps_pca_exp_var, df,
              title='PCA on Morgan Fingerprints',
              outfile='pca_morgan_fps.png')
-'''
