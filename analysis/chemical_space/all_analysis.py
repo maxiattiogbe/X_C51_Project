@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+from rdkit import Chem
+from rdkit.Chem import Draw
 
 
 def get_all_data(smiles_sources_csv, docking_scores_csv, phys_prop_csv, fp_path):
@@ -79,6 +81,37 @@ def plot_docking_score_distr_comparisons(df, outfile):
     plt.tight_layout()
     
     fig.savefig(outfile)
+
+
+def identify_best_binders(df):
+    '''
+    Identify the best binders in the dataset from docking scores
+    '''
+    df_good = df[(df['chembl'] == True) | (df['bindingdb'] == True)]
+    df_other = df[(df['zinc'] == True) | (df['enamine_div'] == True) | (df['enamine_hll'] == True)]
+    best_scores = np.sort(df['TotalEnergy'].values)[0:10]
+
+    df_best = df[df['TotalEnergy'] < -169]
+    best_enamine = df_best[df_best['enamine_div']]['smiles'].tolist()
+    best_zinc = df_best[df_best['zinc'] == True]['smiles'].tolist()
+    best_chembl = df_best[df_best['chembl'] == True]['smiles'].tolist()
+    best_bindingdb = df_best[df_best['bindingdb'] == True]['smiles'].tolist()
+
+    return best_enamine, best_zinc, best_chembl, best_bindingdb
+
+
+def plot_best_binders(best_enamine, best_zinc, best_chembl, best_bindingdb):
+    '''
+    Make figures of best binders using rdkit
+    Separate known binders (chembl, bindingdb) from molecules from Enamine and ZINC libraries
+    '''
+    mols1 = [Chem.MolFromSmiles(i) for i in best_enamine + best_zinc]
+    im_best_enamine_zinc = Draw.MolsToGridImage(mols1, molsPerRow=3, subImgSize=[600, 300], returnPNG=False)
+    im_best_enamine_zinc.save('best_binders_enamine_zinc.png')
+
+    mols2 = [Chem.MolFromSmiles(i) for i in best_chembl + best_bindingdb]
+    im_best_known = Draw.MolsToGridImage(mols2, molsPerRow=2, subImgSize=[600, 300], returnPNG=False)
+    im_best_known.save('best_binders_chembl_bindingdb.png')
 
 
 def plot_distrs_of_properties(props_df, props, titles, outfile):
@@ -168,6 +201,10 @@ df, props_df, props, titles, fps = get_all_data(smiles_sources_csv, docking_scor
 
 # Plot distributions of docking scores, separated by library
 plot_docking_score_distr_comparisons(df, outfile='docking_score_distrs_w_comparison.png')
+
+# Identify best binders and make figures
+best_enamine, best_zinc, best_chembl, best_bindingdb = identify_best_binders(df)
+plot_best_binders(best_enamine, best_zinc, best_chembl, best_bindingdb)
 
 # Plot distributions of physical properties
 plot_distrs_of_properties(props_df, props, titles, outfile='distr_phys_prop_1d_hist.png')
