@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-df = pd.read_csv("../../docking_results.csv")
+df = pd.read_csv("../../docking_results/docking_results.csv")
 
 # Find minimum docking score for each molecule
 df_new = df.groupby('SMILE')
