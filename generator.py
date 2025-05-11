@@ -13,6 +13,7 @@ from synthemol.constants import OPTIMIZATION_TYPES
 from synthemol.generate.node import Node
 from synthemol.reactions import Reaction
 from synthemol.utils import random_choice
+from policy_model import predict_score
 
 
 class Generator:
@@ -389,32 +390,32 @@ class Generator:
                 self.node_to_children[node] = child_nodes
         
         # === Training Data Collection for Policy Model ===
-        features_and_scores = []
-        for child in child_nodes:
-            features = self.extract_features(child)  
-            label = child.P
-            features_and_scores.append((features, label))
+        # features_and_scores = []
+        # for child in child_nodes:
+        #     features = self.extract_features(child)  
+        #     label = child.P
+        #     features_and_scores.append((features, label))
         
-        max_training_samples_per_rollout = 20
-        rng = random.Random(42)
-        features_and_scores = rng.sample(features_and_scores, k=min(len(features_and_scores), max_training_samples_per_rollout))
+        # max_training_samples_per_rollout = 20
+        # rng = random.Random(42)
+        # features_and_scores = rng.sample(features_and_scores, k=min(len(features_and_scores), max_training_samples_per_rollout))
 
-        header = [
-            "num_molecules", "num_reactions", "num_unique_building_blocks",
-            "last_reaction_id", "num_building_blocks_last_rxn",
-            "MolWt", "MolLogP", "NumHDonors", "NumHAcceptors",
-            "TPSA", "NumRotatableBonds", "FractionCSP3", "HeavyAtomCount",
-            "Property Score"  # target
-        ]
+        # header = [
+        #     "num_molecules", "num_reactions", "num_unique_building_blocks",
+        #     "last_reaction_id", "num_building_blocks_last_rxn",
+        #     "MolWt", "MolLogP", "NumHDonors", "NumHAcceptors",
+        #     "TPSA", "NumRotatableBonds", "FractionCSP3", "HeavyAtomCount",
+        #     "Property Score"  # target
+        # ]
 
-        file_path = "policy_model_data.csv"
-        write_header = not os.path.exists(file_path)
+        # file_path = "policy_model_data.csv"
+        # write_header = not os.path.exists(file_path)
 
-        with open(file_path, "a") as f:
-            if write_header:
-                f.write(",".join(header) + "\n")
-            for feat, label in features_and_scores:
-                f.write(f"{','.join(map(str, feat))},{label}\n")
+        # with open(file_path, "a") as f:
+        #     if write_header:
+        #         f.write(",".join(header) + "\n")
+        #     for feat, label in features_and_scores:
+        #         f.write(f"{','.join(map(str, feat))},{label}\n")
         # === End Training Data Collection ===
 
         # If no new nodes were generated, return the current node's value
@@ -424,12 +425,34 @@ class Generator:
             else:
                 raise ValueError('Failed to expand a partially expanded node.')
 
-        # Select a node based on the MCTS score
+        # # Select a node based on the MCTS score
+        # total_visit_count = sum(child_node.N for child_node in child_nodes)
+        # selected_node = self.optimization_fn(
+        #     child_nodes,
+        #     key=partial(self.compute_mcts_score, total_visit_count=total_visit_count)
+        # )
+
+        # Select a node based on a blend of policy score and MCTS score
         total_visit_count = sum(child_node.N for child_node in child_nodes)
-        selected_node = self.optimization_fn(
-            child_nodes,
-            key=partial(self.compute_mcts_score, total_visit_count=total_visit_count)
-        )
+
+        # Predict policy model scores
+        child_features = [self.extract_features(child) for child in child_nodes]
+        policy_scores = [predict_score(f) for f in child_features]
+
+        # Blend with MCTS score
+        alpha = 1  # Tune this as needed
+        blended_scores = [
+            alpha * policy + (1 - alpha) * self.compute_mcts_score(child, total_visit_count)
+            for child, policy in zip(child_nodes, policy_scores)
+        ]
+
+        # Choose best node
+        if self.optimization == 'maximize':
+            selected_index = np.argmax(blended_scores)
+        else:
+            selected_index = np.argmin(blended_scores)
+
+        selected_node = child_nodes[selected_index]
 
         # Check the node map and merge with an existing node if available
         if selected_node in self.node_map:
