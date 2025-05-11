@@ -1,3 +1,0 @@
-smiles,node_id,num_expansions,rollout_num,score,Q_value,num_reactions,reaction_1_id,building_block_1_1_id,building_block_1_1_smiles,building_block_1_2_id,building_block_1_2_smiles
-C#CC(C(=O)NNC(=O)c1ccc(Cn2nnc(-c3ccccc3)n2)cc1)C(C)C,84811,0,1,-129.0790252685547,0.0,1,22,4060,NNC(=O)c1ccc(Cn2nnc(-c3ccccc3)n2)cc1,3481496,C#CC(C(=O)O)C(C)C
-C#CC(C(=O)N(N)C(=O)c1ccc(Cn2nnc(-c3ccccc3)n2)cc1)C(C)C,84810,500,1,-128.03807067871094,-128.03807067871094,1,22,4060,NNC(=O)c1ccc(Cn2nnc(-c3ccccc3)n2)cc1,3481496,C#CC(C(=O)O)C(C)C
