@@ -3,6 +3,7 @@ import itertools
 from collections import Counter
 from functools import partial
 from typing import Callable
+import joblib
 
 import numpy as np
 from rdkit import Chem
@@ -13,7 +14,7 @@ from synthemol.constants import OPTIMIZATION_TYPES
 from synthemol.generate.node import Node
 from synthemol.reactions import Reaction
 from synthemol.utils import random_choice
-from policy_model import predict_score
+# from synthemol.generate.policy_model import predict_score
 
 
 class Generator:
@@ -103,6 +104,11 @@ class Generator:
         self.node_map: dict[Node, Node] = {self.root: self.root}
         self.building_block_counts = Counter()
         self.node_to_children: dict[Node, list[Node]] = {}
+        self.policy_model = joblib.load("synthemol/generate/XGBoost_policy_model.pkl")
+
+        # Print the current directory
+        print("Generator initialized")
+        print("Current directory:", os.getcwd())
 
     def get_next_building_blocks(self, molecules: tuple[str]) -> list[str]:
         """Get the next building blocks that can be added to the given molecules.
@@ -437,7 +443,10 @@ class Generator:
 
         # Predict policy model scores
         child_features = [self.extract_features(child) for child in child_nodes]
-        policy_scores = [predict_score(f) for f in child_features]
+        # print(f"Successfully extracted features for {len(child_features)} child nodes")
+        # print(f"First child features: {child_features[0]}")
+        policy_scores = [self.policy_model.predict(np.array(f).reshape(1, -1))[0] for f in child_features]
+        # print(f"Successfully predicted policy scores for {len(policy_scores)} child nodes")
 
         # Blend with MCTS score
         alpha = 1  # Tune this as needed
@@ -453,6 +462,7 @@ class Generator:
             selected_index = np.argmin(blended_scores)
 
         selected_node = child_nodes[selected_index]
+        # print(f"Successfully selected next node with property score {selected_node.P}")
 
         # Check the node map and merge with an existing node if available
         if selected_node in self.node_map:
