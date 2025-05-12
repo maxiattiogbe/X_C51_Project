@@ -488,7 +488,7 @@ plot_distrs_of_properties(props_df, props, titles, outfile='distr_phys_prop_1d_h
 plot_distrs_of_properties_2d(df, props_df, props, titles, outfile='distr_phys_prop_2d_hist.png')
 
 # Are physical properties correlated with docking score?
-plot_phys_vs_docking_score(df, props_df, props, titles, outfile='')
+plot_phys_vs_docking_score(df, props_df, props, titles, outfile='linear_regression_phys_dock_score.png')
 
 # Calculate PCAs
 pca_results = calc_all_pcas(props_df, mfps)
@@ -501,4 +501,3 @@ umaps = calc_all_umaps(pca_results)
 
 # Plot UMAPs
 plot_umaps_compare(umaps, df, outfile='umap_compare_all.png')
-
