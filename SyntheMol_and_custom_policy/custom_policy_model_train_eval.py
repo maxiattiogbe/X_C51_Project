@@ -9,7 +9,7 @@ from xgboost import XGBRegressor
 import joblib
 
 # Load the data
-data = pd.read_csv("policy_model_data.csv")
+data = pd.read_csv("SyntheMol_and_custom_policy/policy_model_data.csv")
 
 # Split into features and labels
 X = data.iloc[:, :-1].values
@@ -47,5 +47,5 @@ best_model_name, best_rmse, _ = min(results, key=lambda x: x[1])
 best_model = models[best_model_name]
 
 # Save the best model to a file
-joblib.dump(best_model, f"{best_model_name}_policy_model.pkl")
-print(f"\nSaved best model: {best_model_name} to {best_model_name}_policy_model.pkl")
+joblib.dump(best_model, f"SyntheMol_and_custom_policy/{best_model_name}_policy_model.pkl")
+print(f"\nSaved best model: {best_model_name} to SyntheMol_and_custom_policy/{best_model_name}_policy_model.pkl")
