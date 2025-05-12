@@ -155,32 +155,33 @@ def plot_best_binders_new(df):
     '''
     Make figures of best binders using rdkit
     '''
+    size = [600, 400]
     # Generated molecules
     gen = df[(df['source'].isin(['gen_mr1_filtered', 'gen_mr1_unfiltered_policy', 'gen_mr2_filtered'])) &
              (df['TotalEnergy'] < -170)]
     mols = [Chem.MolFromSmiles(i) for i in gen['smiles']]
-    im = Draw.MolsToGridImage(mols, molsPerRow=5, subImgSize=[2250, 1400], returnPNG=False)
+    im = Draw.MolsToGridImage(mols, molsPerRow=5, subImgSize=[500,300], returnPNG=False)
     im.save('best_binders_generated.png')
 
     # Known binders
     known = df[(df['source'] == 'literature_binders') &
                (df['TotalEnergy'] < -130)]
     mols = [Chem.MolFromSmiles(i) for i in known['smiles']]
-    im = Draw.MolsToGridImage(mols, molsPerRow=4, subImgSize=[2250, 1400], returnPNG=False)
+    im = Draw.MolsToGridImage(mols, molsPerRow=4, subImgSize=size, returnPNG=False)
     im.save('best_binders_literature.png')
 
     # Probable binders
     probable = df[(df['source'].isin(['chembl', 'bindingdb'])) &
                   (df['TotalEnergy'] < -165)]
     mols = [Chem.MolFromSmiles(i) for i in probable['smiles']]
-    im = Draw.MolsToGridImage(mols, molsPerRow=5, subImgSize=[2250, 1400], returnPNG=False)
+    im = Draw.MolsToGridImage(mols, molsPerRow=5, subImgSize=size, returnPNG=False)
     im.save('best_binders_chembl_bindingdb.png')
 
     # Library
     library = df[(df['source'].isin(['enamine_hll', 'enamine_div', 'zinc'])) &
                   (df['TotalEnergy'] < -168)]
     mols = [Chem.MolFromSmiles(i) for i in library['smiles']]
-    im = Draw.MolsToGridImage(mols, molsPerRow=6, subImgSize=[2250, 1400], returnPNG=False)
+    im = Draw.MolsToGridImage(mols, molsPerRow=6, subImgSize=size, returnPNG=False)
     im.save('best_binders_enamine_zinc.png')
 
 
